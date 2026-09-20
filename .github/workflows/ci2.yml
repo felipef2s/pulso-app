@@ -46,5 +46,5 @@ jobs:
           platforms: linux/amd64
           build-args: |
             GIT_SHA=${{ github.sha }}
-          tags: ghcr.io/SEU-USUARIO/pulso:${{ github.sha }}
+          tags: ghcr.io/felipef2s/pulso-app:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
