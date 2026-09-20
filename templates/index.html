@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pulso</title>
+  <style>
+    :root {
+      --cor-fundo: #0d1117;
+      --cor-texto: #e6edf3;
+      --cor-apagada: #8b949e;
+      --cor-destaque: #58a6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--cor-fundo);
+      color: var(--cor-texto);
+      font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+    }
+    h1 { margin: 0 0 4px; font-size: 2.5rem; color: var(--cor-destaque); }
+    .batida {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--cor-destaque);
+      animation: pulsar 1.6s ease-in-out infinite;
+    }
+    @keyframes pulsar { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+    dl { margin: 28px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; text-align: left; }
+    dt { color: var(--cor-apagada); }
+    dd { margin: 0; font-weight: 600; word-break: break-all; }
+    footer { margin-top: 28px; font-size: .8rem; color: var(--cor-apagada); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>pulso <span class="batida"></span></h1>
+    <p>curso 5446 · GitOps e CI/CD</p>
+
+    <dl>
+      <dt>versão</dt><dd>{{ version }}</dd>
+      <dt>commit</dt><dd>{{ commit }}</dd>
+    </dl>
+
+    <footer>aplicação de demonstração · Alura</footer>
+  </main>
+</body>
+</html>
