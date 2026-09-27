@@ -1,27 +1,29 @@
-"""Atualiza exatamente uma imagem do Pulso no manifesto. Não depende de bibliotecas externas."""
+"""Atualiza a imagem da aplicação no manifesto. Não depende de bibliotecas externas.
+
+O nome da imagem NÃO fica fixo aqui: ele vem do argumento IMAGE (definido no CI).
+O script procura no manifesto a única imagem do mesmo dono no GHCR
+(ghcr.io/<dono>/...) e troca pelo valor novo, mesmo que o nome antigo seja outro
+(ex.: pulso-app -> pulso).
+"""
 import re
 import sys
 from pathlib import Path
 
-# Imagem nova: sempre com o SHA completo do commit (40 caracteres)
-NEW_IMAGE = re.compile(r"ghcr\.io/[a-z0-9-]+/pulso:[a-f0-9]{40}")
+# Imagem nova: ghcr.io/<dono>/<nome>:<SHA completo de 40 caracteres>
+NEW_IMAGE = re.compile(r"ghcr\.io/(?P<owner>[a-z0-9-]+)/[a-z0-9._/-]+:[a-f0-9]{40}")
 
-# Linha atual no manifesto. Aceita:
-#   image: ghcr.io/dono/pulso:tag
-#   - image: ghcr.io/dono/pulso:tag
-#   image: "ghcr.io/dono/pulso:tag"   (aspas simples ou duplas)
-#   image: ghcr.io/dono/pulso         (sem tag)
-#   image: ghcr.io/dono/pulso:tag  # comentario
-PULSO_LINE = re.compile(
-    r"""^(?P<prefix>[ \t]*(?:-[ \t]+)?image:[ \t]*)"""
-    r"""(?P<quote>["']?)ghcr\.io/[^/\s"']+/pulso(?::[^\s"'#]+)?(?P=quote)"""
-    r"""(?P<suffix>[ \t]*(?:\#.*)?)$""",
-    re.MULTILINE,
-)
+
+def line_pattern(owner):
+    # Aceita "- image:", aspas simples/duplas, imagem sem tag e comentário no fim
+    return re.compile(
+        r"""^(?P<prefix>[ \t]*(?:-[ \t]+)?image:[ \t]*)"""
+        r"""(?P<quote>["']?)ghcr\.io/""" + re.escape(owner) + r"""/[^\s"'#:]+(?::[^\s"'#]+)?(?P=quote)"""
+        r"""(?P<suffix>[ \t]*(?:\#.*)?)$""",
+        re.MULTILINE,
+    )
 
 
 def image_lines(text):
-    """Lista as linhas com 'image:' para facilitar o diagnóstico."""
     found = [
         f"  linha {n}: {line.strip()}"
         for n, line in enumerate(text.splitlines(), 1)
@@ -31,27 +33,29 @@ def image_lines(text):
 
 
 def update(path, image):
-    if not NEW_IMAGE.fullmatch(image):
+    match = NEW_IMAGE.fullmatch(image)
+    if not match:
         raise ValueError(
-            "Use ghcr.io/<dono>/pulso seguido do SHA completo de 40 caracteres. "
+            "Use ghcr.io/<dono>/<nome> seguido do SHA completo de 40 caracteres. "
             f"Recebi: {image}"
         )
+    owner = match["owner"]
 
     target = Path(path)
     if not target.is_file():
         raise ValueError(f"Manifesto não encontrado: {target}")
 
     text = target.read_text(encoding="utf-8-sig")
-    updated, count = PULSO_LINE.subn(
+    updated, count = line_pattern(owner).subn(
         lambda m: m["prefix"] + m["quote"] + image + m["quote"] + m["suffix"],
         text,
     )
 
     if count != 1:
         raise ValueError(
-            f"Esperava exatamente uma imagem do Pulso em {target}, encontrei {count}. "
-            "Nenhum arquivo alterado.\nLinhas com 'image:' no arquivo:\n"
-            + image_lines(text)
+            f"Esperava exatamente uma imagem ghcr.io/{owner}/... em {target}, "
+            f"encontrei {count}. Nenhum arquivo alterado.\n"
+            "Linhas com 'image:' no arquivo:\n" + image_lines(text)
         )
 
     target.write_text(updated, encoding="utf-8")

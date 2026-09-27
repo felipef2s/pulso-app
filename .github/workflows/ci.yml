@@ -9,6 +9,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: false
 
+# Nome da imagem definido em UM lugar so. Para renomear, muda aqui.
+env:
+  IMAGE_NAME: ghcr.io/felipef2s/pulso
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -46,7 +50,7 @@ jobs:
           platforms: linux/amd64
           build-args: |
             GIT_SHA=${{ github.sha }}
-          tags: ghcr.io/felipef2s/pulso:${{ github.sha }}
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
   update-config:
@@ -54,7 +58,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      IMAGE: ghcr.io/felipef2s/pulso:${{ github.sha }}
+      IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
       CONFIG_FILE: ${{ vars.CONFIG_MANIFEST || 'k8s/deployment.yaml' }}
     steps:
       # O repo pulso-app inteiro fica dentro de ./app
