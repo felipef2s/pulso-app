@@ -58,7 +58,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
       CONFIG_FILE: ${{ vars.CONFIG_MANIFEST || 'k8s/deployment.yaml' }}
     steps:
       # O repo pulso-app inteiro fica dentro de ./app
@@ -82,7 +81,7 @@ jobs:
           python-version: "3.12"
 
       - name: Atualiza somente a imagem do ambiente selecionado
-        run: python app/scripts/update_image.py "config/$CONFIG_FILE" "$IMAGE"
+        run: python app/scripts/update_image.py "config/$CONFIG_FILE" "$IMAGE_NAME:$GITHUB_SHA"
 
       - name: Registra a entrega
         working-directory: config
