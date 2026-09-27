@@ -74,7 +74,7 @@ jobs:
           IMAGE: ghcr.io/felipef2s/pulso:${{ github.sha }}
           CONFIG_FILE: ${{ vars.CONFIG_MANIFEST || 'k8s/deployment.yaml' }}
         run: |
-          python scripts/update_image.py "config/$CONFIG_FILE" "$IMAGE"
+          python ./scripts/update_image.py "config/$CONFIG_FILE" "$IMAGE"
       - name: Registra a entrega
         working-directory: config
         env:
